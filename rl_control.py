@@ -16,6 +16,12 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import PointCloud
 
+def lidar_converter(data):
+	a = []
+	a.append(data.x)
+	a.append(data.y)
+	a.append(data.z)
+	return a
 class State_feedback(object):
 	def __init__(self):
 		#rospy.Subscriber("/cmd_vel", JointState, self.joint_callback)
@@ -23,7 +29,7 @@ class State_feedback(object):
 		self.command_pose = rospy.Publisher("/gazebo/set_model_state",ModelState, queue_size=10)
 		rospy.Subscriber("/ground_truth/state",Odometry, self.position_cb)
 		rospy.Subscriber("/raw_imu",Imu,self.imu_cb)
-		#rospy.Subscriber("/slam_cloud",PointCloud,self.lidar_cb)
+		rospy.Subscriber("/slam_cloud",PointCloud,self.lidar_cb)
 		#self.ik=rospy.Publisher("/cmd_vel", JointState, queue_size=10)
 		#self.command = rospy.Publisher("/command/pose",PoseStamped, queue_size=10)
 		self.command_vel = rospy.Publisher("/cmd_vel",Twist, queue_size=10)
@@ -84,27 +90,30 @@ class State_feedback(object):
 		self.p.pose.position.y = Pose[1]
 		self.p.pose.position.z = Pose[2]
 		Start = time.clock()
-		while True and not rospy.is_shutdown() :
+		while True:
 			self.command_pose.publish(self.p)
 			if time.clock() - Start >=1:
 				break
 		print(1)	
 	
-	def give_vel(self,vel = [0.5,0.5,0.5,0,0,0]):
+	def give_vel(self,vel = [0.5,0.5,0.5,0,0,0],Time = 0.1):
 		
 		msg = Twist()
+		
 		msg.linear.x = vel[0]
 		msg.linear.y = vel[1]
 		msg.linear.z = vel[2]
 		msg.angular.x = vel[3]
 		msg.angular.y = vel[4]
 		msg.angular.z = vel[5]
-		while not rospy.is_shutdown()  : 
+		T = time.clock()
+		while True : 
 
 			self.command_vel.publish(msg)
-				
-			print(2)
-		print(3)	
+			if time.clock() - T > Time:
+				break
+			#print(2)
+		#print(3)	
 			
 	def imu_cb(self,callback):
 		#self.points = callback.orientation
@@ -123,14 +132,14 @@ class State_feedback(object):
 		#print(self.i_ori)
 		#print(self.i_vel_ang)
 		#print(self.i_acc_lin)
-'''	
+
+
 	def lidar_cb(self,callback):
-		point = []
+		#print(1)
 		#self.points = ()
-		[point[index] = point for index ,point in callback.points]
-		
-		print(point)
-'''
+		self.lidar_points = list(map(lidar_converter,callback.points))	
+		#print(self.lidar_points)
+
 '''
 class Quadrotor_env(object):
 	def __init__(self):
@@ -152,12 +161,12 @@ class State_feedback(object):
 	def position_callback(self,position):
 		self.position = position	
 '''	
+
 if __name__ == '__main__':
 	rospy.init_node('rl_msgs', anonymous=True)
 	msg_cb = State_feedback()
-	msg_cb.set_position([10,10,10])
-	msg_cb.give_vel()
-while not rospy.is_shutdown():
-	rospy.spin()	
-		
+	#msg_cb.set_position([10,10,10])
+	#msg_cb.give_vel()
+	
+	
 			
