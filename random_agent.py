@@ -15,13 +15,15 @@ class random_agent(object):
         self.state = (0,0,1)
         while True:
             if self.state[2] < max_height:
-                c = random.random()
+                z = 0.1
+                action = [0,0,z,0,0,0]
             else:
-                c = 0	
-    	    a = -0.5
-    	    b = -0.5
-    	    
-    	    action = [a,b,c]
+                x = 0.1
+               # theta_list = [0,0.75,1.5,-0.75,-1.5] 
+               # rdm = np.random.randint(0,5)
+               # theta = theta_list[rdm]  
+                theta = 1.5 	    
+    	        action = [x,0,0,theta,0,0]
             self.state,reward,Status,a = self.Env.step(action)
             print(self.state)
             print(reward)
@@ -33,5 +35,7 @@ if __name__ == '__main__':
     rospy.init_node('agent', anonymous=True)
     agt = random_agent()
     agt.rdn_agent(1)
+    while not rospy.is_shutdown():
+        rospy.spin()	
 			
 		

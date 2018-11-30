@@ -25,7 +25,7 @@ class Env(object):
         self.initial_pose = (0,0,0.2)
         self.pub_cmd_vel = rospy.Publisher('cmd_vel', Twist, queue_size=5)
         self.current_info = defaultdict(list)
-        self.Goalstate = (0,0,1)
+        self.Goalstate = (0,1,1)
         self.reward = 0
     #def Available_action(self):
         
@@ -33,12 +33,12 @@ class Env(object):
         
     def step(self,action):
         '''
-        Input: 1 x 3 List
+        Input: 1 x 6 List
         Output:Current_state,current_reward,current_status,{}
         publish the action to gazebo model and return it in several second
         '''
-        vel = action + [0,0,0] # only consider linear velocity
-        self.simulation.give_vel(vel  ,Time = 1)
+        vel = action # only consider linear velocity
+        self.simulation.give_vel(vel,Time = 1)
         '''
         while self.simulation.command:
             continue

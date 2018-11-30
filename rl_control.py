@@ -69,7 +69,7 @@ class State_feedback(object):
 
 		#print('start')
 		#print(self.pos)
-		#print(self.vel)
+		#print(self.vel[2])
 		#print(self.true_velocity)
 		
 		'''
@@ -89,6 +89,7 @@ class State_feedback(object):
 		self.p.pose.position.x = Pose[0]
 		self.p.pose.position.y = Pose[1]
 		self.p.pose.position.z = Pose[2]
+		
 		Start = time.clock()
 		while True:
 			self.command_pose.publish(self.p)
