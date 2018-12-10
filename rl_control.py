@@ -12,7 +12,7 @@ from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseStamped
 from gazebo_msgs.msg import ModelState
 from nav_msgs.msg import Odometry
-
+from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import PointCloud
 
@@ -22,14 +22,16 @@ def lidar_converter(data):
 	a.append(data.y)
 	a.append(data.z)
 	return a
+
 class State_feedback(object):
 	def __init__(self):
 		#rospy.Subscriber("/cmd_vel", JointState, self.joint_callback)
-		self.command = rospy.Publisher("/command/pose",PoseStamped, queue_size=10)
-		self.command_pose = rospy.Publisher("/gazebo/set_model_state",ModelState, queue_size=10)
-		rospy.Subscriber("/ground_truth/state",Odometry, self.position_cb)
-		rospy.Subscriber("/raw_imu",Imu,self.imu_cb)
-		rospy.Subscriber("/slam_cloud",PointCloud,self.lidar_cb)
+		self.command = rospy.Publisher("/command/pose", PoseStamped, queue_size=10)
+		self.command_pose = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=10)
+		rospy.Subscriber("/ground_truth/state", Odometry, self.position_cb)
+		rospy.Subscriber("/raw_imu", Imu, self.imu_cb)
+		rospy.Subscriber("/slam_cloud", PointCloud, self.lidar_cb)
+		rospy.Subscriber("/scan", LaserScan, self.laser)
 		#self.ik=rospy.Publisher("/cmd_vel", JointState, queue_size=10)
 		#self.command = rospy.Publisher("/command/pose",PoseStamped, queue_size=10)
 		self.command_vel = rospy.Publisher("/cmd_vel",Twist, queue_size=10)
@@ -139,8 +141,14 @@ class State_feedback(object):
 		#print(1)
 		#self.points = ()
 		self.lidar_points = list(map(lidar_converter,callback.points))	
-		#print(self.lidar_points)
+		# print(self.lidar_points)
 
+	def laser(self, callback):
+		self.laser_ranges = callback.ranges
+		self.obs_max = max(callback.ranges)
+		self.obs_min = min(callback.ranges)
+		print(self.obs_max, self.obs_min)
+		# print([i for i, j in enumerate(self.laser_ranges) if j == self.obs_max])
 '''
 class Quadrotor_env(object):
 	def __init__(self):
@@ -166,6 +174,8 @@ class State_feedback(object):
 if __name__ == '__main__':
 	rospy.init_node('rl_msgs', anonymous=True)
 	msg_cb = State_feedback()
+	#print(len(msg_cb.lidar_points))
+	rospy.spin()
 	#msg_cb.set_position([10,10,10])
 	#msg_cb.give_vel()
 	
