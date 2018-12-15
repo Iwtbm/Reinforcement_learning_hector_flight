@@ -61,7 +61,7 @@ class State_feedback(object):
 		          callback.pose.pose.orientation.y,
 		          callback.pose.pose.orientation.z,
 		          callback.pose.pose.orientation.w)
-		
+		# print(self.pos)
 		self.vel = (callback.twist.twist.linear.x,
 		          callback.twist.twist.linear.y,
 		          callback.twist.twist.linear.z,
@@ -145,9 +145,10 @@ class State_feedback(object):
 
 	def laser(self, callback):
 		self.laser_ranges = callback.ranges
+		# print(self.laser_ranges)
 		self.obs_max = max(callback.ranges)
 		self.obs_min = min(callback.ranges)
-		print(self.obs_max, self.obs_min)
+		# print(self.obs_max, self.obs_min)
 		# print([i for i, j in enumerate(self.laser_ranges) if j == self.obs_max])
 '''
 class Quadrotor_env(object):

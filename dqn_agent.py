@@ -31,14 +31,14 @@ class ReinforceAgent():
         self.state_size = state_size
         self.action_size = action_size
         self.episode_step = 6000
-        self.target_update = 2000
+        self.target_update = 16
         self.discount_factor = 0.99
         self.learning_rate = 0.00025
         self.epsilon = 1.0
         self.epsilon_decay = 0.99
         self.epsilon_min = 0.05
-        self.batch_size = 64
-        self.train_start = 64
+        self.batch_size = 4
+        self.train_start = 200
         self.memory = deque(maxlen=1000000)
         self.model = self.buildModel()
         self.target_model = self.buildModel()
@@ -130,9 +130,10 @@ if __name__ == '__main__':
     # pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
     # result = Float32MultiArray()
     # get_action = Float32MultiArray()
-    speed = 0.6
+    speed = 0.3
     theta = [-1.5, -0.75, 0, 0.75, 1.5]
-    state_size = 1086
+    state_size = 3
+    #state_size = 1086
     action_size = 5
 
     env = Env()
@@ -141,13 +142,17 @@ if __name__ == '__main__':
     scores, episodes = [], []
     global_step = 0
     start_time = time.time()
-
+    Status = False
     for e in range(agent.load_episode + 1, EPISODES):
         done = False
         state = env.reset()
         score = 0
-
-        for t in range(agent.episode_step):
+        t = 0
+        #for t in range(agent.episode_step):
+        while not done and t <= agent.episode_step :#and not rospy.is_shutdown():
+            Status = rospy.is_shutdown()
+            if Status:
+                break
             action = agent.getAction(state)
             vel = [speed, 0, 0, 0, 0, theta[action]]
             next_state, reward, done = env.step(vel)
@@ -184,8 +189,8 @@ if __name__ == '__main__':
                 m, s = divmod(int(time.time() - start_time), 60)
                 h, m = divmod(m, 60)
 
-                rospy.loginfo('Ep: %d score: %.2f memory: %d epsilon: %.2f time: %d:%02d:%02d',
-                              e, score, len(agent.memory), agent.epsilon, h, m, s)
+                rospy.loginfo('Ep: %d score: %.2f reward: %d memory: %d epsilon: %.2f time: %d:%02d:%02d',
+                              e, score, reward, len(agent.memory), agent.epsilon, h, m, s)
                 # param_keys = ['epsilon']
                 # param_values = [agent.epsilon]
                 # param_dictionary = dict(zip(param_keys, param_values))
@@ -194,6 +199,9 @@ if __name__ == '__main__':
             global_step += 1
             if global_step % agent.target_update == 0:
                 rospy.loginfo("UPDATE TARGET NETWORK")
+            t += 1
+        if Status:
+            break
 
         if agent.epsilon > agent.epsilon_min:
             agent.epsilon *= agent.epsilon_decay
