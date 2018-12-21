@@ -15,30 +15,27 @@ from Env import Env
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.optimizers import RMSprop
 from tensorflow.keras.layers import Dense, Dropout, Activation
-
+import math
 EPISODES = 3000
 
 
 class ReinforceAgent():
     def __init__(self, state_size, action_size):
-        # self.pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
         self.dirPath = os.path.dirname(os.path.realpath(__file__))
-        # self.dirPath = self.dirPath.replace('turtlebot3_dqn/nodes', 'turtlebot3_dqn/save_model/stage_4_')
-        # self.result = Float32MultiArray()
 
-        self.load_model = False
-        self.load_episode = 0
+        self.load_model = True               ## load model
+        self.load_episode = 700              ## load ep
         self.state_size = state_size
         self.action_size = action_size
         self.episode_step = 6000
-        self.target_update = 16
+        self.target_update = 2000
         self.discount_factor = 0.99
         self.learning_rate = 0.00025
-        self.epsilon = 1.0
-        self.epsilon_decay = 0.99
+        self.epsilon = 0.05                   ## load eps
+        self.epsilon_decay = 0.995
         self.epsilon_min = 0.05
-        self.batch_size = 4
-        self.train_start = 200
+        self.batch_size = 64
+        self.train_start = 500
         self.memory = deque(maxlen=1000000)
         self.model = self.buildModel()
         self.target_model = self.buildModel()
@@ -48,17 +45,13 @@ class ReinforceAgent():
         if self.load_model:
             self.model.set_weights(load_model(self.dirPath + str(self.load_episode) + ".h5").get_weights())
 
-            # with open(self.dirPath + str(self.load_episode) + '.json') as outfile:
-            #     param = json.load(outfile)
-            #     self.epsilon = param.get('epsilon')
-
     def buildModel(self):
         model = Sequential()
         dropout = 0.2
 
         model.add(Dense(64, input_shape=(self.state_size,), activation='relu', kernel_initializer='lecun_uniform'))
+        model.add(Dense(64, input_shape=(self.state_size,), activation='relu', kernel_initializer='lecun_uniform'))
 
-        model.add(Dense(64, activation='relu', kernel_initializer='lecun_uniform'))
         model.add(Dropout(dropout))
 
         model.add(Dense(self.action_size, kernel_initializer='lecun_uniform'))
@@ -126,14 +119,10 @@ class ReinforceAgent():
 
 if __name__ == '__main__':
     rospy.init_node('dqn_agent')
-    # pub_result = rospy.Publisher('result', Float32MultiArray, queue_size=5)
-    # pub_get_action = rospy.Publisher('get_action', Float32MultiArray, queue_size=5)
-    # result = Float32MultiArray()
-    # get_action = Float32MultiArray()
-    speed = 0.3
-    theta = [-1.5, -0.75, 0, 0.75, 1.5]
-    state_size = 3
-    #state_size = 1086
+    speed = 0.15
+    pi = math.pi
+    theta = [-pi/2, -pi/4, 0, pi/4, pi/2]
+    state_size = 32
     action_size = 5
 
     env = Env()
@@ -148,16 +137,19 @@ if __name__ == '__main__':
         state = env.reset()
         score = 0
         t = 0
-        #for t in range(agent.episode_step):
-        while not done and t <= agent.episode_step :#and not rospy.is_shutdown():
+
+        while not done and t <= agent.episode_step :
+            st = time.time()
             Status = rospy.is_shutdown()
+            resample = []
+            
             if Status:
                 break
             action = agent.getAction(state)
             vel = [speed, 0, 0, 0, 0, theta[action]]
-            next_state, reward, done = env.step(vel)
-
-            agent.appendMemory(state, action, reward, next_state, done)
+            next_state, reward, done = env.step(vel, action)
+            if e > 706:
+                agent.appendMemory(state, action, reward, next_state, done)
 
             if len(agent.memory) >= agent.train_start:
                 if global_step <= agent.target_update:
@@ -167,39 +159,31 @@ if __name__ == '__main__':
 
             score += reward
             state = next_state
-            # get_action.data = [action, score, reward]
-            # pub_get_action.publish(get_action)
 
-            if e % 10 == 0:
+            if e % 100 == 0 and done:
                 agent.model.save(agent.dirPath + str(e) + '.h5')
                 print('Model Saved')
-                # with open(agent.dirPath + str(e) + '.json', 'w') as outfile:
-                #     json.dump(param_dictionary, outfile)
 
-            if t >= 500:
+            if t >= 300:
                 rospy.loginfo("Time out!!")
                 done = True
 
             if done:
-                # print([score, np.max(agent.q_value)])
-                # pub_result.publish(result)
                 agent.updateTargetModel()
-                # scores.append(score)
-                # episodes.append(e)
+                scores.append(score)
+                episodes.append(e)
                 m, s = divmod(int(time.time() - start_time), 60)
                 h, m = divmod(m, 60)
 
-                rospy.loginfo('Ep: %d score: %.2f reward: %d memory: %d epsilon: %.2f time: %d:%02d:%02d',
-                              e, score, reward, len(agent.memory), agent.epsilon, h, m, s)
-                # param_keys = ['epsilon']
-                # param_values = [agent.epsilon]
-                # param_dictionary = dict(zip(param_keys, param_values))
+                rospy.loginfo('Ep: %d score: %d memory: %d epsilon: %.2f time: %d:%02d:%02d',
+                              e, score, len(agent.memory), agent.epsilon, h, m, s)
                 break
-
+            
             global_step += 1
             if global_step % agent.target_update == 0:
                 rospy.loginfo("UPDATE TARGET NETWORK")
             t += 1
+            
         if Status:
             break
 

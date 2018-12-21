@@ -1,0 +1,31 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/wenda/hector_quadrotor/devel/include",
+        "/opt/ros/kinetic/include",
+        "/home/wenda/hector_quadrotor/src/hector_gazebo/hector_gazebo_plugins/include",
+        "/home/wenda/hector_quadrotor/src/hector_gazebo/hector_gazebo_thermal_camera/include",
+        "/home/wenda/hector_quadrotor/src/hector_slam/hector_geotiff/include",
+        "/home/wenda/hector_quadrotor/src/hector_slam/hector_map_tools/include",
+        "/home/wenda/hector_quadrotor/src/hector_slam/hector_mapping/include",
+        "/home/wenda/hector_quadrotor/src/hector_slam/hector_marker_drawing/include",
+        "/home/wenda/hector_quadrotor/src/hector_localization/hector_pose_estimation/include",
+        "/home/wenda/hector_quadrotor/src/hector_localization/hector_pose_estimation_core/include",
+        "/home/wenda/hector_quadrotor/src/hector_quadrotor/hector_quadrotor_actions/include",
+        "/home/wenda/hector_quadrotor/src/hector_quadrotor/hector_quadrotor_controller_gazebo/include",
+        "/home/wenda/hector_quadrotor/src/hector_quadrotor/hector_quadrotor_gazebo_plugins/include",
+        "/home/wenda/hector_quadrotor/src/hector_quadrotor/hector_quadrotor_interface/include",
+        "/home/wenda/hector_quadrotor/src/hector_quadrotor/hector_quadrotor_model/include",
+        "/home/wenda/hector_quadrotor/src/hector_quadrotor/hector_quadrotor_pose_estimation/include",
+        "/home/wenda/hector_quadrotor/src/hector_quadrotor/hector_uav_msgs/include",
+        "/usr/include"
+      ],
+      "name": "Linux"
+    }
+  ]
+}
